@@ -1,0 +1,51 @@
+.venv/
+venv/
+
+# .NET build output
+**/bin/
+**/obj/
+**/out/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Test results
+**/TestResults/
+*.trx
+coverage/
+coverage.*
+
+# Logs
+*.log
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+secrets.json
+**/secrets.json
+
+# Local app settings (may contain credentials)
+appsettings.Development.json
+appsettings.*.Local.json
+
+# Publish output
+**/publish/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+
+# OS files
+.DS_Store
+Thumbs.db
+
+**/appsettings.json

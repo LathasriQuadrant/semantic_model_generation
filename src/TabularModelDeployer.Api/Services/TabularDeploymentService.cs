@@ -89,6 +89,13 @@ public class TabularDeploymentService
             const string dataSourceName = "PrimaryDataSource";
             var dataSource = model.DataSources.Find(dataSourceName) as StructuredDataSource;
 
+            // Fabric endpoints must not carry a SQL-login data source (e.g. left over from an earlier deploy)
+            if (isFabricEndpoint && dataSource != null)
+            {
+                model.DataSources.Remove(dataSource);
+                dataSource = null;
+            }
+
             if (dataSource == null && credential != null)
             {
                 _logger.LogInformation("Configuring data source and credentials");

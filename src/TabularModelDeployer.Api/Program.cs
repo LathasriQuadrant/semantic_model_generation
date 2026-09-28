@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
-
 // ✅ ADD CORS SERVICE (NEW)
 builder.Services.AddCors(options =>
 {

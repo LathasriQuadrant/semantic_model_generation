@@ -46,6 +46,12 @@ public class TabularDeploymentService
             var workspaceUrl = $"powerbi://api.powerbi.com/v1.0/myorg/{request.WorkspaceName}";
             var connector = _connectors.Get(request.SourceType);
 
+            // Fabric Lakehouse SQL endpoints use Entra sign-in, not SQL logins.
+            // Skip data source credentials and REST binding for them.
+            var isFabricEndpoint = request.ConnectionParams.TryGetValue("server", out var srv) &&
+                srv.EndsWith(".datawarehouse.fabric.microsoft.com", StringComparison.OrdinalIgnoreCase);
+            var credential = isFabricEndpoint ? null : request.Credential;
+
             string conn = $"Provider=MSOLAP;Data Source={workspaceUrl};" +
                           $"User ID=app:{clientId}@{tenantId};Password={clientSecret};";
 
@@ -83,7 +89,7 @@ public class TabularDeploymentService
             const string dataSourceName = "PrimaryDataSource";
             var dataSource = model.DataSources.Find(dataSourceName) as StructuredDataSource;
 
-            if (dataSource == null && request.Credential != null)
+            if (dataSource == null && credential != null)
             {
                 _logger.LogInformation("Configuring data source and credentials");
                 dataSource = new StructuredDataSource
@@ -100,7 +106,7 @@ public class TabularDeploymentService
                 // Delegated too — different sources support different auth types
                 // (e.g. Snowflake currently only UsernamePassword; key-pair isn't
                 // supported for Power BI cloud connections yet).
-                dataSource.Credential = connector.BuildCredential(request.Credential);
+                dataSource.Credential = connector.BuildCredential(credential);
             }
             // NOTE: For datasets already published to the Power BI service, credential
             // binding for DirectQuery sources is sometimes only honored via the Power BI
@@ -364,14 +370,14 @@ in
             // satisfies deploy-time validation — it does not register a
             // discoverable datasource object in the Power BI Service. Without
             // this call, tables/schema appear but DirectQuery returns no data.
-            if (request.Credential != null)
+            if (credential != null)
             {
                 _logger.LogInformation("Binding credentials via Power BI REST API...");
                 await _credentialService.BindCredentialsAsync(
                     request.WorkspaceName,
                     request.WorkspaceId,
                     schema.Model_Name,
-                    request.Credential
+                    credential
                 );
                 _logger.LogInformation("Credentials bound successfully");
             }
